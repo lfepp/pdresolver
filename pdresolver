@@ -23,37 +23,35 @@
 
 import sys
 import os
-sys.path.append(os.getcwd())
-
-import logging
 import argparse
 from lib.monitor import LOG_FILE, CONF_FILE, main as run_monitor
+sys.path.append(os.getcwd())
+
 
 def main():
     parser = argparse.ArgumentParser(
         description='Watch a PagerDuty account for incidents from third-party '
-                    'services and automatically resolve them once the services '
-                    'mark them as resolved.'
+                    'services and automatically resolve them once the services'
+                    ' mark them as resolved.'
     )
-    parser.add_argument('-l','--log-file', dest='log_file', default=LOG_FILE,
+    parser.add_argument('-l', '--log-file', dest='log_file', default=LOG_FILE,
                         help='Name and location of log file to write logs to.')
-    parser.add_argument('-c','--conf-file', dest='conf_file', default=CONF_FILE,
-                        help='json file with configuration values, like api keys, named for each service.')
-    parser.add_argument('-i','--interval', dest='interval', type=int, default=45,
-                        help='How often should PagerDuty be polled? (seconds)')
+    parser.add_argument('-c', '--conf-file', dest='conf_file',
+                        default=CONF_FILE, help='json file with configuration '
+                        'values, like api keys, named for each service.')
+    parser.add_argument('-i', '--interval', dest='interval', type=int,
+                        default=45, help='How often should PagerDuty be polled'
+                        '? (seconds)')
     parser.add_argument('--pagerduty-api-key', dest='pagerduty_api_key',
-                        help='API key for PagerDuty. Must have ability to '
+                        help='v2 API key for PagerDuty. Must have ability to '
                              'poll incidents, poll services and resolve '
                              'incidents. May be specified in the conf file.')
-    parser.add_argument('--pagerduty-requester-id', dest='pagerduty_requester-id',
-                        help='Requester ID for PagerDuty. When incidents are '
-                             'resolved, a Requester ID must be provided to '
-                             'link the resolution action with a user account. '
-                             'May be specified in the conf file.')
-    parser.add_argument('--pagerduty-subdomain', dest='pagerduty_subdomain',
-                        help='Subdomain for PagerDuty. Your account should be '
-                             'set up at <--pagerduty-subdomain>.pagerduty.com. '
-                             'May be specified in the conf file.')
+    parser.add_argument('--pagerduty-requester-email',
+                        dest='pagerduty_requester-email',
+                        help='Requester email for PagerDuty. When incidents '
+                             'are resolved, an email must be provided '
+                             'to link the resolution action with a user '
+                             'account. May be specified in the conf file.')
     run_monitor(parser.parse_args())
 
 

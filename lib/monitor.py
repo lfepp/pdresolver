@@ -33,9 +33,9 @@ CONF_FILE = "/etc/pdresolver/conf.json"
 LOG_FILE = "/var/log/inkling/pdresolver.log"
 
 # PagerDuty
-SERVICES_URL = "https://%s.pagerduty.com/api/v1/services"
-INCIDENTS_URL = "https://%s.pagerduty.com/api/v1/incidents"
-OPEN_INCIDENTS_URL = "https://%s.pagerduty.com/api/v1/incidents?" \
+SERVICES_URL = "https://api.pagerduty.com/services"
+INCIDENTS_URL = "https://api.pagerduty.com/incidents"
+OPEN_INCIDENTS_URL = "https://api.pagerduty.com/incidents?" \
                      "status=triggered,acknowledged"
 
 log = logging.getLogger()
@@ -52,10 +52,12 @@ class Monitor(object):
                          json.load(open(kwargs['conf_file'], 'r')).iteritems())
 
         self.api_key = self.option('api_key', kwargs, self.keys)
-        self.requester_id = self.option('requester_id', kwargs, self.keys)
-        self.subdomain = self.option('subdomain', kwargs, self.keys)
+        self.requester_email = self.option('requester_email', kwargs,
+                                           self.keys)
         self.headers = {"Authorization": "Token token=%s" % self.api_key,
-                        "Content-Type": 'application/json'}
+                        "Content-Type": 'application/json',
+                        "Accept": "application/vnd.pagerduty+json;version=2",
+                        "From": self.requester_email}
 
         self.services = dict((service.__name__.lower(),
                               service(self.keys[service.__name__.lower()]))
@@ -76,7 +78,7 @@ class Monitor(object):
                     break
 
     def get_open_incidents(self):
-        resp = requests.get(OPEN_INCIDENTS_URL % self.subdomain,
+        resp = requests.get(OPEN_INCIDENTS_URL,
                             headers=self.headers)
         resp.raise_for_status()
         return resp.json()['incidents']
@@ -84,10 +86,15 @@ class Monitor(object):
     def resolve(self, incident):
         log.info("Resolving incident #%s on PagerDuty...", incident['id'])
         data = {
-            'incidents': [{'id': incident['id'], 'status': 'resolved'}],
-            'requester_id': self.requester_id,
+            'incidents': [
+                {
+                    'id': incident['id'],
+                    'type': 'incident_reference',
+                    'status': 'resolved'
+                }
+            ]
         }
-        resp = requests.put(INCIDENTS_URL % self.subdomain,
+        resp = requests.put(INCIDENTS_URL,
                             data=json.dumps(data),
                             headers=self.headers)
         resp.raise_for_status()
@@ -114,8 +121,8 @@ class Monitor(object):
                     log.info("Incident %s currently occurring on '%s'.",
                              incident['id'], service_name)
                 else:
-                    log.info("Incident %s is not resolved on '%s'. Resolving...",
-                             incident['id'], service_name)
+                    log.info("Incident %s is not resolved on '%s'. Resolving.."
+                             ".", incident['id'], service_name)
                     self.resolve(incident)
                     log.info("Resolved incident %s triggered by %s.",
                              incident['id'], service_name)

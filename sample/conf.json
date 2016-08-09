@@ -1,8 +1,7 @@
 {
     "pagerduty": {
-      "subdomain": "mysubdomain",
       "api_key": "myAPIkey",
-      "requester_id": "myRequesterID"
+      "requester_email": "myRequester@Email.com"
     },
     "wormly": {
       "api_key": "myAPIkey"

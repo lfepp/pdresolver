@@ -22,6 +22,7 @@
 import logging
 log = logging.getLogger(__name__)
 
+
 class Service(object):
     """The superclass of all pdresolver services.
     Subclasses must implement the "incident_is_occurring" method.
